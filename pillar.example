@@ -1,0 +1,94 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+---
+tool:
+  chromium:
+    version: latest                        # latest, ungoogled
+    update_auto: false                     # install updates on subsequent runs automatically
+    # When using policies.json on Linux, there are two global policy directories, therefore these
+    # settings have to be global there. User-specific settings with policies are possible on MacOS
+    # afaik where policies are installed via a profile.
+    #################################################################################################
+    # provide default values for ExtensionSettings
+    # see https://support.google.com/chrome/a/answer/9867568?hl=en&ref_topic=9023246
+    ext_defaults:
+      installation_mode: normal_installed # When not specified, use this extension installation mode by default.
+      # Setting update_url to something different than specified in the extension's manifest.json
+      # and enabling override of update url will cause even update requests (not just installation)
+      # to be routed there instead of the official source. For local extensions, this is set automatically.
+      override_update_url: false
+      # If you want to update from another repo by default, specify it here.
+      # For local extensions, this is set automatically.
+      update_url: https://clients2.google.com/service/update2/crx
+    # This formula allows using (Ungoogled: needs to use) extensions from the local file system.
+    # Those extensions will not be updated automatically from the web. Since we simulate a local repo,
+    # you will need to tell salt explicitly which version you're providing and need to change
+    # the setting when you want to make Chromium aware the extension was updated on the next startup.
+    ext_local_source: /some/path # when marking extensions as local, use this path to look for extension.crx by default
+    ext_local_source_sync: true  # when using local source, sync extensions from salt://tool-chromium/files/extensions (you should leave that on, unless you know what you're doing)
+    ext_forced: false            # add parsed extension config to forced policies (needed on MacOS/Win)
+    ext_chromium_web_store: true # (semi-)automatically install Chromium Web Store extension for Ungoogled (needs ext_local_source on Mac/Win)
+    # List of extensions that are to be installed. When using policies, can also be specified there
+    # manually, but this provides convenience. see tool-chrome/policies/extensions for list of
+    # available extensions
+    extensions:
+      - bitwarden
+      # If you don't want the default extension settings for your policy, you can specify them
+      # in a mapping like this:
+      - ublock-origin:
+          installation_mode: force_installed
+          runtime_blocked_hosts:
+            - '*://*.supersensitive.bank'
+      # If you don't want an extension to be loaded from the Chrome Web Store (or can't),
+      # but rather from a local directory specified in tool:chrome:ext_local_source,
+      # set local to true and make sure to provide e.g. metamask.crx in there. You will
+      # also need to specify the extension version and change it when you update the file
+      # to make Chrome aware of it.
+      - metamask:
+          local: true
+          local_version: '10.8.1'
+          blocked_permissions:
+            - geolocation
+          toolbar_pin: force_pinned
+    # Specify global Chromium policies here. There are two types, managed (=forced) and
+    # recommended (default, but modifiable by users)
+    policies:
+      forced:
+        SSLErrorOverrideAllowed: false
+        SSLVersionMin: tls1.2
+      recommended:
+        AutofillCreditCardEnabled: false
+        BlockThirdPartyCookies: true
+        BookmarkBarEnabled: true
+        BrowserNetworkTimeQueriesEnabled: false
+        BrowserSignin: 0
+        BuiltInDnsClientEnabled: false
+        MetricsReportingEnabled: false
+        PromotionalTabsEnabled: false
+        SafeBrowsingExtendedReportingEnabled: false
+        SearchSuggestEnabled: false
+        ShowFullUrlsInAddressBar: true
+        SyncDisabled: true
+        UrlKeyedAnonymizedDataCollectionEnabled: false
+        UserFeedbackAllowed: false
+    # Windows-specific settings when using policies, defaults as seen below
+    # To be able to use Group Policies, this formula needs to ensure the ADML/X templates are available. Currently, there are none specific to Chromium.
+    # I did not test this formula on Windows so far. This might manage Chrome instead.
+    win_gpo_owner: Administrators
+    win_gpo_policy_dir: C:/Windows/PolicyDefinitions
+    win_gpo_lang: en_US
+    # this is the official source for the templates, it's not versioned. this is default
+    win_gpo_source: https://dl.google.com/dl/edgedl/chrome/policy/policy_templates.zip
+    # specify the source hash to enable verification. by default, verification is skipped (not recommended)
+    win_gpo_source_hash: 25c6819e38e26bf87e44d3a0b9ac0cc0843776c271a6fa469679e7fae26a1591
+
+    defaults:   # user-level defaults
+      flags: []
+
+  users:
+    user:
+      chromium:
+        flags:    # Enable Chromium flags via Local State file.
+          # This flag is specific to Ungoogled Chromium. It is set automatically if you
+          # enable ext_chromium_web_store
+          - extension-mime-request-handling@2
