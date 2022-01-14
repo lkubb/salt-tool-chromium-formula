@@ -4,6 +4,10 @@
 
 {%- set version = chromium.get('version', 'latest') %}
 
+{#- this is a clutch currently. want to rework it after adding libmapstack @TODO
+    Ubuntu names the package chromium-browser.
+    Debian names the package chromium, but the bin chromium-browser
+    see https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/chromium_packages.md -#}
 {%- set package = salt['match.filter_by'](salt['grains.filter_by']({
   'Windows': {
     'latest': 'chromium',
@@ -32,7 +36,8 @@
 
 {%- set linux_dir = 'ungoogled-chromium' if version == 'ungoogled' else 'chromium-browser' %}
 
-{#- @TODO windows/rpm/bsd, probably C:/Program Files/Chromium or Program Files (x86). -#}
+{#- @TODO windows/rpm/bsd, probably C:/Program Files/Chromium or Program Files (x86).
+    note: seems like the latter was default previously, but now the former is correct -#}
 {%- set installation_path = salt['grains.filter_by']({
   'MacOS': '/Applications/Chromium.app',
   'Windows': 'C:/Program Files/Chromium',
@@ -42,7 +47,7 @@
 
 {%- set bin_path = salt['grains.filter_by']({
   'Darwin': installation_path ~ '/Contents/MacOS/Chromium',
-  'Windows': installation_path ~ '/Chromium.exe',
+  'Windows': installation_path ~ '/Application/chromium.exe',
   'Linux': '/usr/bin/' ~ linux_dir,
   }, 'kernel') %}
 
