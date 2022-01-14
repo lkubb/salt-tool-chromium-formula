@@ -113,7 +113,7 @@ update_url: https://clients2.google.com/service/update2/crx
         Somehow, extensions that could not be installed during policy application will be
         blocked from manual installation after. This might only be the case for force_installed. -#}
     {%- set extension_default = salt['defaults.merge'](extensions_default, data[data.keys() | list | first], in_place=False) -%}
-    {%- set extension_config = salt['defaults.merge'](extensions_default, extension_config, in_place=False) -%}
+    {%- set extension_config = salt['defaults.merge'](extension_default, extension_config, in_place=False) -%}
     {%- do data[data.keys() | list | first].update(extension_config) -%}
     {%- do extensions_data.update(data) -%}
   {%- endfor -%}
