@@ -1,7 +1,8 @@
 {%- from 'tool-chromium/map.jinja' import chromium -%}
 
 Chromium is installed:
-{# Homebrew always installs latest, mac_brew_pkg does not support upgrading a single package #}
+{# Homebrew always installs latest, mac_brew_pkg does not support upgrading a single package
+   this might not be true for casks. @TODO #}
   pkg.installed:
     - name: {{ chromium._package }}
 
