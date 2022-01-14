@@ -100,6 +100,12 @@ The following shows an example of `tool-chromium` pillar configuration. Namespac
 user:
   chromium:
     flags:    # Enable Chromium flags via Local State file.
+              # To find the correct syntax, it is best to set them
+              # and look inside "Local State" (json) browser:enabled_labs_experiments.
+              # chrome://version will show an overview of enabled flags in the cli version
+              # chrome://flags shows available flags and highlights those different from default
+              # mind that cli switches will not be detected on that page
+      - enable-webrtc-hide-local-ips-with-mdns@1
       # This flag is specific to Ungoogled Chromium. It is needed to be set to 2
       # to be able to use Chromium Web Store.
       - extension-mime-request-handling@2
