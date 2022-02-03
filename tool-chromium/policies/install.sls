@@ -10,16 +10,16 @@ Chromium forced policies are applied as Group Policy:
     - computer_policy: {{ chromium._policies.forced | json }}
     - adml_language: {{ chromium.win_gpo_lang | default('en_US') }}
     - require:
-      - sls: {{ slspath }}.winadm
-      - sls: {{ slspath }}.synclocaladdons
+      - sls: {{ slsdotpath }}.winadm
+      - sls: {{ slsdotpath }}.synclocaladdons
 
 Chromium recommended policies are applied as Group Policy:
   lgpo.set:
     - user_policy: {{ chromium._policies.recommended | json }}
     - adml_language: {{ chromium.win_gpo_lang | default('en_US') }}
     - require:
-      - sls: {{ slspath }}.winadm
-      - sls: {{ slspath }}.synclocaladdons
+      - sls: {{ slsdotpath }}.winadm
+      - sls: {{ slsdotpath }}.synclocaladdons
 
 Group policies are updated (Chromium): # suffix to make ID distinct from tool-chrome
   cmd.run:
