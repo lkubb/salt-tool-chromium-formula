@@ -33,6 +33,7 @@ Group policies are updated (Chromium): # suffix to make ID distinct from tool-ch
 Chromium forced policies are applied as profile:
   macprofile.installed:
     - name: salt.tool.org.chromium.Chromium
+    - displayname: Chromium configuration (salt-tool)
     - description: Chromium default configuration managed by Salt state tool-chromium.policies
     - organization: salt.tool
     - removaldisallowed: False
