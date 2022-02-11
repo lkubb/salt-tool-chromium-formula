@@ -136,11 +136,18 @@ update_url: https://clients2.google.com/service/update2/crx
 
 {%- do chromium.update({'_policies': policies}) -%}
 
+{%- set global_user_settings = ['chromium'] %}
+
 {#- rejectattr filter does not fit with mapping. need to filter out users before merging default values -#}
 {%- for tool_user, tool_user_conf in salt['pillar.get']('tool:users', {}).items() -%}
 {#- by default, install tool if it was targeted. explicitly deny for a specific user to override -#}
   {%- if tool_user_conf.get('chromium', True) -%}
-    {%- do users.update({tool_user: salt['defaults.deepcopy'](tool_user_conf)}) -%}
+    {%- do users.update({tool_user: {'chromium': {}}}) %}
+    {%- for global_setting in global_user_settings %}
+      {%- if tool_user_conf.get(global_setting) is not equalto None %}
+        {%- do users[tool_user].update({global_setting: salt['defaults.deepcopy'](tool_user_conf[global_setting])}) %}
+      {%- endif %}
+    {%- endfor %}
   {%- endif -%}
 {%- endfor -%}
 
