@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set values specific to:
+#   salt['config.get']('os_family') == RedHat.
+#
+# You just need to add the key:values for this `os_family` that differ
+# from `defaults.yaml` + `<osarch>.yaml`.
+#
+# If you do not need to provide defaults via the `os_family` config,
+# you can remove this file or provide at least an empty dict, e.g.
+# values: {}
+{#- For Fedora, this updates automatically. For other rpm-based distributions, I'm not even sure
+    if the official rpm builds work. CentOS is dropped, but needed extra work. #}
+{%- set major = grains['osmajorrelease'] if 'Fedora' == grains['os'] else '35' %}
+---
+values:
+  lookup:
+    paths:
+      latest:
+        installation: /usr/lib64/chromium-browser
+      ungoogled:
+        installation: /usr/lib64/ungoogled-chromium
+    pkg:
+      manager: yum
+      repos:
+        ungoogled:  # yamllint disable rule:line-length
+          humanname: home_ungoogled_chromium
+          name: home:ungoogled_chromium (Fedora_{{ major }})
+          type: rpm-md
+          baseurl: https://download.opensuse.org/repositories/home:/ungoogled_chromium/Fedora_{{ major }}/
+          key_url: https://download.opensuse.org/repositories/home:/ungoogled_chromium/Fedora_{{ major }}/repodata/repomd.xml.key
+          gpgcheck: 1
+...

@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set values specific to:
+#   salt['config.get']('os_family') == Debian.
+#
+# You just need to add the key:values for this `os_family` that differ
+# from `defaults.yaml` + `<osarch>.yaml`.
+#
+# If you do not need to provide defaults via the `os_family` config,
+# you can remove this file or provide at least an empty dict, e.g.
+# values: {}
+{%- set os_code = grains['os'] | capitalize ~ '_' ~ grains['lsb_distrib_codename'] | capitalize %}
+---
+values:
+  lookup:
+    pkg:
+      latest: chromium
+      manager: apt
+      repos:
+        ungoogled:  # yamllint disable rule:line-length
+          humanname: Ungoogled Chromium
+          name: deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/{{ os_code }}/ /
+          key_url: https://download.opensuse.org/repositories/home:/ungoogled_chromium/{{ os_code }}/Release.key
+          file: /etc/apt/sources.list.d/home-ungoogled_chromium.list
+...

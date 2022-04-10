@@ -1,0 +1,189 @@
+{#- -*- coding: utf-8 -*- #}
+{#- vim: ft=jinja #}
+
+{%- set paths = mapdata.lookup.paths[mapdata.version] -%}
+{%- set pkg = mapdata.lookup.pkg[mapdata.version] -%}
+
+{%- if not pkg %}
+  {%- do salt.log.error("Chromium {} is not available on {}. This is an undefined state and will fail.".format(mapdata.version, grains.os)) %}
+{%- endif %}
+
+{%- do mapdata.update({
+      '_path': paths.installation,
+      '_bin': paths.bin,
+      '_pkg': pkg,
+}) -%}
+
+{%- if 'ungoogled' == mapdata.version %}
+  {%- if 'repos' in mapdata.lookup.pkg %}
+    {%- do mapdata.lookup.pkg.update({'enablerepo': ['ungoogled']}) %}
+  {%- endif %}
+
+  {#- Needs local sources. For vanilla Chromium, adding a temp folder
+    to allowed sources complicates the flow. Also, temp folders generated in this file
+    change when imported from different files. Could be solved with os-dependent
+    mapstack and persistent dir. @TODO -#}
+  {%- if mapdata | traverse('extensions:chromium_web_store') %}
+    {%- do mapdata | append_dict_key_value('extensions:wanted', 'chromium-web-store') %}
+    {%- do mapdata | append_dict_key_value('defaults:flags', 'extension-mime-request-handling@2') %}
+  {%- endif %}
+{%- endif %}
+
+{%- set policies = mapdata.get('policies', {}) -%}
+{%- set extensions = mapdata.get('extensions', {}) -%}
+
+{#- Parse wanted extensions first.
+    Allows to specify pre-defined extensions by name
+    instead of looking up ID. -#}
+{%- if extensions.get('wanted') -%}
+  {%- set extensions_data = {} -%}
+  {%- set local_extensions = {} -%}
+  {%- set download_extensions = {} -%}
+  {%- set download_extensions_tempdir = mapdata.extensions.local.source ~ '/downloaded' %}
+  {%- for extension in extensions.wanted -%}
+    {%- set ext_config = {} -%}
+    {%- set local = false %}
+    {%- if extension is mapping -%}
+      {%- set ext_name = extension | first -%}
+      {#- need to deepcopy because we might pop 'local' settings, which will seem to work, but
+          will make imports not contain local extension settings -#}
+      {%- set ext_config = salt['defaults.deepcopy'](extension[ext_name]) -%}
+    {%- else -%}
+      {%- set ext_name = extension -%}
+    {%- endif -%}
+    {%- if ext_name not in mapdata.lookup.extension_data -%}
+      {%- do salt.log.error('Could not find extension "{}" in lookup:extension_data. Skipping.'.format(ext_name)) -%}
+    {%- else -%}
+      {%- set ext_id = mapdata.lookup.extension_data[ext_name].id -%}
+      {%- set ext_data = mapdata.lookup.extension_data[ext_name].data -%}
+      {%- if ext_config.get('local') -%}
+        {%- do local_extensions.update({ext_name: {'id': ext_id, 'v': ext_config.local_version} }) -%}
+        {%- do ext_config.update({'update_url': 'file://' ~ mapdata.extensions.local.source ~ '/update'}) -%}
+        {%- do ext_config.update({'override_update_url': true}) -%}
+        {%- do ext_config.pop('local') -%}
+        {%- do ext_config.pop('local_version') -%}
+        {%- set local = true %}
+      {%- endif -%}
+      {#- On Mac/Win, Ungoogled Chromium (for all extensions) and Chromium (for extensions outside CWS)
+          will not work with ExtensionSettings. Download them to provide semi-automatical installation. -#}
+      {%- set update_url = ext_data.get('update_url', mapdata.extensions.defaults.update_url) %}
+      {%- if not local and 'Linux' != grains['kernel'] and
+            ('ungoogled' == mapdata.version or
+            'https://clients2.google.com/service/update2/crx' != update_url) %}
+        {%- do download_extensions.update({
+              ext_name: {'id': ext_id, 'update_url': update_url}
+        }) -%}
+      {%- endif %}
+      {#- Still keep them in ExtensionSettings. They need to be installed before policy application.
+          Somehow, extensions that could not be installed during policy application will be
+          blocked from manual installation after. This might only be the case for force_installed. -#}
+
+      {#- merge global extension defaults with data provided in lookup -#}
+      {%- set ext_data = salt['defaults.merge'](mapdata.extensions.defaults, ext_data, in_place=false) -%}
+      {#- then merge with desired config -#}
+      {%- set ext_data = salt['defaults.merge'](ext_data, ext_config, in_place=false) -%}
+      {%- do extensions_data.update({ext_id: ext_data}) -%}
+    {%- endif %}
+  {%- endfor -%}
+  {%- do mapdata.update({
+        '_local_extensions': local_extensions,
+        '_download_extensions': download_extensions,
+        '_download_extensions_tempdir': download_extensions_tempdir,
+  }) -%}
+  {%- set policies = salt['defaults.merge'](
+            policies,
+            {'forced' if mapdata.extensions.forced else 'recommended': {
+              'ExtensionSettings': extensions_data}
+            }, in_place=false)
+  -%} {#- for whatever reason, this does not work in_place -#}
+  {#- local sources need to be explicitly allowed in forced config -#}
+  {%- if local_extensions or download_extensions %}
+    {%- do policies | append_dict_key_value('forced:ExtensionInstallSources', 'file://{}/*'.format(mapdata.extensions.local.source)) %}
+  {%- endif %}
+{%- endif -%}
+
+{#- parse unwanted extensions second -#}
+{%- if extensions.get('absent') -%}
+  {%- set extensions_data = {} -%}
+  {%- for extension in extensions.absent -%}
+    {%- if extension not in mapdata.lookup.extension_data -%}
+      {%- do salt.log.error('Could not find unwanted extension "{}" in lookup:extension_data. Skipping.'.format(ext_name)) -%}
+    {%- else -%}
+      {%- set ext_id = mapdata.lookup.extension_data[extension].id -%}
+      {%- set ext_data = mapdata.lookup.extension_data[extension].data -%}
+      {%- do ext_data.update({'installation_mode': 'blocked'}) -%}
+      {%- do extensions_data.update({ext_id: ext_data}) -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- set policies = salt['defaults.merge'](
+            policies,
+            {'forced' if mapdata.extensions.forced else 'recommended': {
+              'ExtensionSettings': extensions_data}
+            }, in_place=false)
+  -%}
+{%- endif -%}
+
+{#- https://support.google.com/chrome/a/answer/7532015 -#}
+{%- if policies and 'Windows' == grains['kernel'] %}
+  {%- if policies | traverse("recommended:ExtensionSettings") %}
+    {%- do policies.recommended.update({'ExtensionSettings': policies.recommended.ExtensionSettings | json}) %}
+  {%- endif %}
+  {%- if policies | traverse("forced:ExtensionSettings") %}
+    {%- do policies.forced.update({'ExtensionSettings': policies.forced.ExtensionSettings | json}) %}
+  {%- endif %}
+{%- endif %}
+
+{%- do mapdata.update({'_policies': policies}) -%}
+
+{%- set users = {} -%}
+
+{%- set user_settings = ['xdg', 'completions', 'dotconfig', 'persistenv', 'rchook', 'completions', 'chromium'] -%}
+
+{#- rejectattr filter does not fit with mapping. need to filter out users before merging default values -#}
+{%- for tool_user, tool_user_conf in mapdata.get('users', {}).items() -%}
+{#- by default, install tool if it was targeted. explicitly deny for a specific user to override -#}
+  {%- if tool_user_conf.get('chromium', true) -%}
+    {%- do users.update({tool_user: {'chromium': {}}}) -%}
+    {%- for user_setting in user_settings -%}
+      {%- if tool_user_conf.get(user_setting) is not equalto None -%}
+        {%- do users[tool_user].update({user_setting: salt['defaults.deepcopy'](tool_user_conf[user_setting])}) -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{#- update all users' configurations for this formula with the formula defaults -#}
+{%- do salt['defaults.update'](users, {'chromium': mapdata.get('defaults', {})}) -%}
+
+{#- embed user information that will be reused (home, primary group, shell, paths) -#}
+{%- for user in users.keys() -%}
+  {%- do users[user].update({'_chromium': {}}) -%}
+  {%- do users[user].update({'name': user}) -%}
+  {%- set user_info = salt['user.info'](user) -%}
+  {%- load_yaml as user_info -%}
+group: {{ salt['user.primary_group'](user) }}
+home: {{ user_info.home }}
+shell: {{ user_info.shell.split('/')[-1] }}
+  {%- endload -%}
+  {%- do users[user].update(salt['defaults.merge'](user_info, users[user], in_place=false)) -%}
+  {%- if '.config' == paths.confdir[:7] %}
+    {#- cannot use environ.get because it only has access to current env, not a specific user's -#}
+    {%- load_yaml as xdg -%}
+  cache: {{ salt['cmd.run']('[ -n "$XDG_CACHE_HOME" ] && echo "${XDG_CACHE_HOME}" || echo "${HOME}/.cache"', runas=user) }}
+  config: {{ salt['cmd.run']('[ -n "$XDG_CONFIG_HOME" ] && echo "${XDG_CONFIG_HOME}" || echo "${HOME}/.config"', runas=user) }}
+  data: {{ salt['cmd.run']('[ -n "$XDG_DATA_HOME" ] && echo "${XDG_DATA_HOME}" || echo "${HOME}/.local/share"', runas=user) }}
+  state: {{ salt['cmd.run']('[ -n "$XDG_STATE_HOME" ] && echo "${XDG_STATE_HOME}" || echo "${HOME}/.local/state"', runas=user) }}
+    {%- endload -%}
+    {%- do users[user].update({'xdg': xdg}) -%}
+    {%- do users[user]['_chromium'].update({
+        'confdir': xdg.config | path_join(paths.confdir[8:])
+    }) -%}
+  {%- else %}
+    {%- do users[user]['_chromium'].update({
+        'confdir': users[user].home | path_join(paths.confdir)
+    }) -%}
+  {%- endif %}
+{%- endfor -%}
+
+{#- finally embed parsed user config and info in mapdata -#}
+{%- do mapdata.update({'users': users.values() | list}) -%}

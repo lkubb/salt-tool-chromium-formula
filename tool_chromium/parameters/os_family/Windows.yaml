@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set values specific to:
+#   salt['config.get']('os') == Windows.
+#
+# You just need to add the key:values for this `os` that differ
+# from `defaults.yaml` + `<osarch>.yaml` + `<os_family>.yaml`.
+#
+# If you do not need to provide defaults via the `os` config,
+# you can remove this file or provide at least an empty dict, e.g.
+# values: {}
+---
+values:
+  lookup:
+    paths:
+      latest:
+        # switched to this directory recently (from x86)
+        bin: C:/Program Files/Chromium/Application/chromium.exe
+        installation: C:/Program Files/Chromium
+        confdir: 'AppData/Local/Chromium/User Data'
+      ungoogled:
+        bin: C:/Program Files/Chromium/Application/chromium.exe
+        installation: C:/Program Files/Chromium
+        confdir: 'AppData/Local/Chromium/User Data'
+    pkg:
+      latest: chromium
+      ungoogled: ungoogled-chromium
+      manager: chocolatey
+...

@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set default values.
+---
+values:
+  lookup:
+    paths:
+      latest:
+        bin: /usr/bin/chromium-browser
+        installation: /usr/lib/chromium-browser
+        confdir: .config/chromium
+      ungoogled:
+        bin: /usr/bin/ungoogled-chromium
+        installation: /usr/lib/ungoogled-chromium
+        confdir: .config/chromium
+
+    # yamllint disable rule:line-length
+    # https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/chromium_packages.md
+    pkg:
+      enablerepo: []
+      latest: chromium-browser
+      ungoogled: ungoogled-chromium
+    rootgroup: root
+    extension_data:
+      archivebox-exporter:
+        id: habonpimjphpdnmcfkaockjnffodikoj
+        data: {}
+      bitwarden:
+        id: nngceckbapebfimnlniiiahkandclblb
+        data: {}
+      bypass-paywalls-clean:
+        id: lkbebcjgcmobigpeffafkodonchffocl
+        data:
+          update_url: https://gitlab.com/magnolia1234/bypass-paywalls-chrome-clean/-/raw/master/updates.xml
+      chromium-web-store:
+        id: ocaahdebbfolfmndjeplogmgcagdmblk
+        data:
+          update_url: https://raw.githubusercontent.com/NeverDecaf/chromium-web-store/master/updates.xml
+      clearurls:
+        id: lckanjgmijmafbedllaakclkaicjfmnk
+        data: {}
+      cookie-autodelete:
+        id: fhcgjolkccmbidfldomjliifgaodjagh
+        data: {}
+      dark-reader:
+        id: eimadpbcbfnmbkopoojfekhnkhdbieeh
+        data: {}
+      duckduckgo-privacy-essentials:
+        id: bkdgflcldnnnapblkhphbgpggdiikppg
+        data: {}
+      editthiscookie:
+        id: fngmhnnpilhplaeedifhccceomclgfbg
+        data: {}
+      floccus-bookmark-sync:
+        id: fnaicdffflnofjppbagibeoednhnbjhg
+        data: {}
+      gitako:
+        id: giljefjcheohhamkjphiebfjnlphnokk
+        data: {}
+      # this is not listed on CWS
+      # https://github.com/Ibit-to/google-unlocked
+      # does not provide updates.xml though
+      google-unlocked:
+        id: pgledcngpopldecgallhajccjnadmopk
+        data: {}
+      i-dont-care-about-cookies:
+        id: fihnjjcciajhdojfnbdddfaoknhalnja
+        data: {}
+      intention:
+        id: dladanhaondcgpahgiflodhckhoeohoe
+        data: {}
+      joplin-web-clipper:
+        id: alofnhikmmkdbbbgpnglcpdollgjjfek
+        data: {}
+      metamask:
+        id: nkbihfbeogaeaoehlefnkodbefgpgknn
+        data: {}
+      noscript:
+        id: doojmbjmlfjjnbmnoijecmcbfeoakpjm
+        data: {}
+      octotree:
+        id: bkhaagjahfmjljalopjnoealnfndnagc
+        data: {}
+      privacy-pass:
+        id: ajhmfdgkijocedmfjonnpjfojldioehi
+        data: {}
+      privacy-redirect:
+        id: pmcmeagblkinmogikoikkdjiligflglb
+        data: {}
+      reddit-enhancement-suite:
+        id: kbmfpngjjgdllneeigpgjifpgocmfgmb
+        data: {}
+      refined-github:
+        id: hlepfoohegkhhmjieoechaddaejaokhf
+        data: {}
+      refined-hacker-news:
+        id: gcibdgjaladjjloeocimnijdgopejkfk
+        data: {}
+      session-buddy:
+        id: edacconmaakjimmfgnblocblbcdcpbko
+        data: {}
+      skip-redirect:
+        id: jaoafjdoijdconemdmodhbfpianehlon
+        data: {}
+      sponsorblock:
+        id: mnjggcdmjocbbbhaepdhchncahnbgone
+        data: {}
+      tab-session-manager:
+        id: iaiomicjabeggjcfkbimgmglanimpnae
+        data: {}
+      tabs-outliner:
+        id: eggkanocgddhmamlbiijnphhppkpkmkl
+        data: {}
+      tampermonkey:
+        id: dhdgffkkebhmkfjojejmpbldmpobfkfo
+        data: {}
+      temple-wallet:
+        id: ookjlbkiijinhpmnjffcofjonbfbgaoc
+        data: {}
+      the-marvellous-suspender:
+        id: noogafoofpebimajpfpamcfhoaifemoa
+        data: {}
+      twemex:
+        id: amoldiondpmjdnllknhklocndiibkcoe
+        data: {}
+      ublacklist:
+        id: pncfbmialoiaghdehhbnbhkkgmjanfhe
+        data: {}
+      ublock-origin:
+        id: cjpalhdlnbpafiamejdnhcphjbkeiagm
+        data: {}
+      vimium:
+        id: dbepggeogbaibhgnhhndojpepiihcmeb
+        data: {}
+      wayback-machine:
+        id: fpnmgdkabkmnadcjpehmlllkndpkmiak
+        data: {}
+      xdefi-wallet:
+        id: hmeobnfnfcmdkdcmlblgagmfpfboieaf
+        data: {}
+  extensions:  # yamllint enable rule:line-length
+    defaults:
+      installmode: normal_installed
+      override_update_url: false
+      update_url: https://clients2.google.com/service/update2/crx
+    forced: true
+    local:
+      source: /opt/chromium_extensions
+      sync: true
+  version: latest
+  # Just here for testing
+  added_in_defaults: defaults_value
+  winner: defaults
+...

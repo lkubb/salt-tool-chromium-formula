@@ -1,100 +1,203 @@
 # -*- coding: utf-8 -*-
 # vim: ft=yaml
+# yamllint disable rule:comments-indentation
 ---
-tool:
-  chromium:
-    version: latest                        # latest, ungoogled
-    update_auto: false                     # install updates on subsequent runs automatically
-    # When using policies.json on Linux, there are two global policy directories, therefore these
-    # settings have to be global there. User-specific settings with policies are possible on MacOS
+################################################################################
+# Mind that this is to be read as an overview of available
+# settings which can be set in many different ways, not only
+# by providing pillar values.
+# The different sources will be merged. For further information,
+# please see the docs, `libmapstack.jinja` as well as the configured
+# default sources in `parameters/map_jinja.yaml`.
+#
+# This documentation will need to be updated once there is
+# some learned experience. @TODO
+################################################################################
+
+# Apart from the various source files, there are two independent source trees
+# for user-specific configuration.
+# Generally tool_chromium > tool_global.
+# `tool_global` focuses on specific users, of which most values
+# will be respected by all formulae in the `tool` suite:
+tool_global:
+  users:
+
+      # The following is global configuration for the user named `user`.
+    user:
+
+        # Force the usage of XDG directories for this user.
+      xdg: true
+
+        # Persist environment variables used by this formula for this
+        # user to this file (will be appended to a file relative to $HOME)
+      persistenv: '.config/zsh/zshenv'
+
+        # Add runcom hooks specific to this formula to this file
+        # for this user (will be appended to a file relative to $HOME)
+      rchook: '.config/zsh/zshrc'
+
+        # This user's configuration for this formula. Will be overridden by
+        # user-specific configuration in `tool_chromium:users`.
+        # Set this to `false` to disable configuration for this user.
+      chromium:
+          # Enable Chromium flags via Local State file. To find the correct syntax,
+          # it is best to set them manually and look inside "Local State" (json)
+          # `browser:enabled_labs_experiments`.
+          # `chrome://version` will show an overview of enabled flags in the CLI variant
+          # `chrome://flags` shows available flags and highlights
+          # those different from default.
+          # Mind that CLI switches will not be detected on that page.
+        flags:
+          - enable-webrtc-hide-local-ips-with-mdns@1
+            # This flag is specific to Ungoogled Chromium. It is needed to be set to 2
+            # to be able to use Chromium Web Store.
+          - extension-mime-request-handling@2
+
+tool_chromium:
+    # When using policies.json on Linux, there are two global policy
+    # directories, therefore these settings have to be global there.
+    # User-specific settings with policies are possible on MacOS
     # afaik where policies are installed via a profile.
-    #################################################################################################
-    # provide default values for ExtensionSettings
-    # see https://support.google.com/chrome/a/answer/9867568?hl=en&ref_topic=9023246
-    ext_defaults:
-      installation_mode: normal_installed # When not specified, use this extension installation mode by default.
-      # Setting update_url to something different than specified in the extension's manifest.json
-      # and enabling override of update url will cause even update requests (not just installation)
-      # to be routed there instead of the official source. For local extensions, this is set automatically.
+    # This does not extend to extension settings.
+    ############################################################################
+
+    # Which Chromium version to install:
+    # latest, ungoogled
+  version: latest
+
+    # Install updates on subsequent runs automatically.
+  update_auto: true
+
+  extensions:
+      # List of extensions that should not be installed.
+    absent:
+      - tampermonkey
+      # (Semi-)automatically install Chromium Web Store extension
+      # for Ungoogled (needs user interaction on Mac/Win).
+    chromium_web_store: true
+      # Defaults for extension installation settings
+    defaults:
+      installation_mode: normal_installed
       override_update_url: false
-      # If you want to update from another repo by default, specify it here.
-      # For local extensions, this is set automatically.
       update_url: https://clients2.google.com/service/update2/crx
-    # This formula allows using (Ungoogled: needs to use) extensions from the local file system.
-    # Those extensions will not be updated automatically from the web. Since we simulate a local repo,
-    # you will need to tell salt explicitly which version you're providing and need to change
-    # the setting when you want to make Chromium aware the extension was updated on the next startup.
-    ext_local_source: /some/path # when marking extensions as local, use this path to look for extension.crx by default
-    ext_local_source_sync: true  # when using local source, sync extensions from salt://tool-chromium/files/extensions (you should leave that on, unless you know what you're doing)
-    ext_forced: false            # add parsed extension config to forced policies (needed on MacOS/Win)
-    ext_chromium_web_store: true # (semi-)automatically install Chromium Web Store extension for Ungoogled (needs ext_local_source on Mac/Win)
-    # List of extensions that are to be installed. When using policies, can also be specified there
-    # manually, but this provides convenience. see tool-chrome/policies/extensions for list of
-    # available extensions
-    extensions:
+      # add generated ExtensionSettings to forced policies
+      # (necessary on MacOS at least)
+    forced: false
+      # This formula allows using (Ungoogled: needs to use) extensions from the
+      # local file system. Those extensions will not be updated automatically
+      # from the web.
+    local:
+        # When marking extensions as local, use this path on the minion to look for
+        # `<extension>.crx` by default.
+      source: /opt/chromium_extensions
+        # When using local source, sync extensions automatically from the fileserver.
+        # You will need to provide the extensions as
+        # `tool_chromium/extensions/<tofs_grain>/<extension>.crx`
+      sync: true
+      # List of extensions that are to be installed. When using policies, can also
+      # be specified there manually, but this provides convenience. See
+      # `tool_chromium/parameters/defaults.yaml` for a list of available extensions in
+      # `lookup:extension_data`. Of course, you can also specify your own on top.
+    wanted:
       - bitwarden
-      # If you don't want the default extension settings for your policy, you can specify them
-      # in a mapping like this:
+        # If you want to override defaults, you can specify them
+        # in a mapping like this:
       - ublock-origin:
           installation_mode: force_installed
           runtime_blocked_hosts:
             - '*://*.supersensitive.bank'
-      # If you don't want an extension to be loaded from the Chrome Web Store (or can't),
-      # but rather from a local directory specified in tool:chrome:ext_local_source,
-      # set local to true and make sure to provide e.g. metamask.crx in there. You will
-      # also need to specify the extension version and change it when you update the file
-      # to make Chrome aware of it.
+        # If you don't want an extension to be loaded from the Chrome Web Store
+        # (or it's unlisted there), but rather from a local directory specified in
+        # `extensions:defaults:local_source`, set local to true and make sure to
+        # provide e.g. `metamask.crx` in there.
+        # Since we simulate a local repo, you will need to tell Salt explicitly
+        # which version you're providing and need to change the value when you want to
+        # make Chromium aware the extension was updated on the next startup.
       - metamask:
-          local: true
-          local_version: '10.8.1'
           blocked_permissions:
             - geolocation
+          local: true
+          local_version: 10.8.1
           toolbar_pin: force_pinned
-    # Specify global Chromium policies here. There are two types, managed (=forced) and
-    # recommended (default, but modifiable by users)
-    policies:
-      forced:
-        SSLErrorOverrideAllowed: false
-        SSLVersionMin: tls1.2
-      recommended:
-        AutofillCreditCardEnabled: false
-        BlockThirdPartyCookies: true
-        BookmarkBarEnabled: true
-        BrowserNetworkTimeQueriesEnabled: false
-        BrowserSignin: 0
-        BuiltInDnsClientEnabled: false
-        MetricsReportingEnabled: false
-        PromotionalTabsEnabled: false
-        SafeBrowsingExtendedReportingEnabled: false
-        SearchSuggestEnabled: false
-        ShowFullUrlsInAddressBar: true
-        SyncDisabled: true
-        UrlKeyedAnonymizedDataCollectionEnabled: false
-        UserFeedbackAllowed: false
-    # Windows-specific settings when using policies, defaults as seen below
-    # To be able to use Group Policies, this formula needs to ensure the ADML/X templates are available. Currently, there are none specific to Chromium.
-    # I did not test this formula on Windows so far. This might manage Chrome instead.
-    win_gpo_owner: Administrators
-    win_gpo_policy_dir: C:/Windows/PolicyDefinitions
-    win_gpo_lang: en_US
-    # this is the official source for the templates, it's not versioned. this is default
-    win_gpo_source: https://dl.google.com/dl/edgedl/chrome/policy/policy_templates.zip
-    # specify the source hash to enable verification. by default, verification is skipped (not recommended)
-    win_gpo_source_hash: 25c6819e38e26bf87e44d3a0b9ac0cc0843776c271a6fa469679e7fae26a1591
 
-    defaults:   # user-level defaults
-      flags: []
+    # This is where you specify enterprise policies.
+    # See https://chromeenterprise.google/policies/ for available settings.
+  policies:
+      # These policies are installed as forced, i.e. cannot be changed
+      # by the user. On MacOS at least, this is where ExtensionSettings
+      # has to be specified to take effect.
+    forced:
+      SSLErrorOverrideAllowed: false
+      SSLVersionMin: tls1.2
+      # These policies are installed as recommended, i.e. only provide
+      # default values.
+    recommended:
+      AutofillCreditCardEnabled: false
+      BlockThirdPartyCookies: true
+      BookmarkBarEnabled: true
+      BrowserNetworkTimeQueriesEnabled: false
+      BrowserSignin: 0
+      BuiltInDnsClientEnabled: false
+      MetricsReportingEnabled: false
+      PromotionalTabsEnabled: false
+      SafeBrowsingExtendedReportingEnabled: false
+      SearchSuggestEnabled: false
+      ShowFullUrlsInAddressBar: true
+      SyncDisabled: true
+      UrlKeyedAnonymizedDataCollectionEnabled: false
+      UserFeedbackAllowed: false
 
+    # Default formula configuration for all users.
+  defaults:
+    flags: default value for all users
+
+    # User configuration can also be specified here in
+    # `tool_chromium:users`. It will override
+    # configuration sourced from `tool_global:users`.
   users:
     user:
+      persistenv: '.bash_profile'
       chromium:
-        flags:    # Enable Chromium flags via Local State file.
-                  # To find the correct syntax, it is best to set them
-                  # and look inside "Local State" (json) browser:enabled_labs_experiments.
-                  # chrome://version will show an overview of enabled flags in the cli version
-                  # chrome://flags shows available flags and highlights those different from default
-                  # mind that cli switches will not be detected on that page
-          - enable-webrtc-hide-local-ips-with-mdns@1
-          # This flag is specific to Ungoogled Chromium. It is needed to be set to 2
-          # to be able to use Chromium Web Store.
-          - extension-mime-request-handling@2
+        flags: this overrides config from tool_globl:users
+
+######################################################################
+# The following settings define default values for this formula,
+# depending on different grains. You should not have to modify them
+# in most cases. For a full overview, see the different files
+# in `parameters`.
+# This is where you can specify custom extension data though.
+######################################################################
+  lookup:
+    rootgroup: root
+      # For using GPO on Windows, this formula needs to install templates.
+      # You should specify a trusted source and an expected hash here.
+      # Since I could not find a versioned source, this formula defaults to
+      # skip verifying the hash if you do not, which should be considered unsafe.
+      # For further details, see ``tool_chromium/parameters/os_family/Windows.yaml``.
+    win_gpo:
+      hash: 25c6819e38e26bf87e44d3a0b9ac0cc0843776c271a6fa469679e7fae26a1591
+      source: https://dl.google.com/dl/edgedl/chrome/policy/policy_templates.zip
+    extensions_data:
+      bitwarden:
+        id: nngceckbapebfimnlniiiahkandclblb
+        data: {}
+
+######################################################################
+# This is where `tool` suite settings end and Salt behavior settings
+# inherited from `salt-formulas/template-formula` start. They will
+# influence how exactly the TOFS pattern is applied. Mind that
+# parts of this are disabled for `configsync.sls`.
+######################################################################
+  tofs:
+    # The files_switch key serves as a selector for alternative
+    # directories under the formula files directory. See TOFS pattern
+    # doc for more info.
+    # Note: Any value not evaluated by `config.get` will be used literally.
+    # This can be used to set custom paths, as many levels deep as required.
+    files_switch:
+      - any/path/can/be/used/here
+      - id
+      - roles
+      - osfinger
+      - os
+      - os_family

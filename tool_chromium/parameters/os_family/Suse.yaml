@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set values specific to:
+#   salt['config.get']('os_family') == Suse.
+#
+# You just need to add the key:values for this `os_family` that differ
+# from `defaults.yaml` + `<osarch>.yaml`.
+#
+# If you do not need to provide defaults via the `os_family` config,
+# you can remove this file or provide at least an empty dict, e.g.
+# values: {}
+---
+values:
+  lookup:
+    paths:
+      latest:
+        installation: /usr/lib64/chromium-browser
+      ungoogled:
+        installation: /usr/lib64/ungoogled-chromium
+    pkg:
+      manager: zypper
+      repos:
+        # For other rpm-based distributions,
+        # I'm not even sure if the official rpm builds work.
+        ungoogled:  # yamllint disable rule:line-length
+          humanname: home_ungoogled_chromium
+          name: home:ungoogled_chromium (Fedora_35)
+          type: rpm-md
+          baseurl: https://download.opensuse.org/repositories/home:/ungoogled_chromium/Fedora_35/
+          key_url: https://download.opensuse.org/repositories/home:/ungoogled_chromium/Fedora_35/repodata/repomd.xml.key
+          gpgcheck: 1
+          gpgautoimport: true
+...
