@@ -5,6 +5,7 @@
 {%- set tplroot = tpldir.split('/')[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
 
+
 {%- if grains['os'] in ['Debian', 'Ubuntu'] %}
 
 Ensure Chromium APT repository can be managed:
@@ -18,7 +19,7 @@ Ensure Chromium APT repository can be managed:
 
 {%- for reponame in chromium.lookup.pkg.enablerepo %}
 
-Chromium {{ repo }} repository is available:
+Chromium {{ reponame }} repository is available:
   pkgrepo.managed:
 {%-   for conf, val in chromium.lookup.pkg.repos[reponame].items() %}
     - {{ conf }}: {{ val }}

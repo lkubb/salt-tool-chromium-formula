@@ -8,6 +8,7 @@
 include:
   - {{ slsdotpath }}.repo.clean
 
+
 Chromium is removed:
   pkg.removed:
     - name: {{ chromium._pkg.name }}

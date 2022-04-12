@@ -15,6 +15,7 @@ include:
 
 {%- else %}
 
+
 {%-   for reponame, repodata in chromium.lookup.pkg.repos.items() %}
 
 Chromium {{ reponame }} repository is absent:

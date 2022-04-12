@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/lkubb/salt-tool-template-formula",
-  "commit": "61eeb787bd281ccfa613bdb1a0d62776a3648bb5",
+  "commit": "b6857da39f76771bbfbeaf6fab8389d62179eef9",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -44,9 +44,9 @@
         "extensions": {
           "chromium_web_store": true,
           "defaults": {
-              "installation_mode": "normal_installed",
-              "override_update_url": false,
-              "update_url": "https://clients2.google.com/service/update2/crx"
+            "installation_mode": "normal_installed",
+            "override_update_url": false,
+            "update_url": "https://clients2.google.com/service/update2/crx"
           },
           "forced": false,
           "local": {
