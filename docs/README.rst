@@ -132,91 +132,91 @@ Formula-specific
 
   tool_chromium:
 
-    # Which Chromium version to install:
-    # latest, ungoogled
-  version: latest
+      # Which Chromium version to install:
+      # latest, ungoogled
+    version: latest
 
-    # Install updates on subsequent runs automatically.
-  update_auto: true
+      # Install updates on subsequent runs automatically.
+    update_auto: true
 
-  extensions:
-      # List of extensions that should not be installed.
-    absent:
-      - tampermonkey
-      # (Semi-)automatically install Chromium Web Store extension
-      # for Ungoogled (needs user interaction on Mac/Win).
-    chromium_web_store: true
-      # Defaults for extension installation settings
-    defaults:
-      installation_mode: normal_installed
-      override_update_url: false
-      update_url: https://clients2.google.com/service/update2/crx
-      # add generated ExtensionSettings to forced policies
-      # (necessary on MacOS at least)
-    forced: false
-      # This formula allows using (Ungoogled: needs to use) extensions from the
-      # local file system. Those extensions will not be updated automatically
-      # from the web.
-    local:
-        # When marking extensions as local, use this path on the minion to look for
-        # `<extension>.crx` by default.
-      source: /opt/chromium_extensions
-        # When using local source, sync extensions automatically from the fileserver.
-        # You will need to provide the extensions as
-        # `tool_chromium/extensions/<tofs_grain>/<extension>.crx`
-      sync: true
-      # List of extensions that are to be installed. When using policies, can also
-      # be specified there manually, but this provides convenience. See
-      # `tool_chromium/parameters/defaults.yaml` for a list of available extensions under
-      # `lookup:extension_data`. Of course, you can also specify your own on top.
-    wanted:
-      - bitwarden
-        # If you want to override defaults, you can specify them
-        # in a mapping like this:
-      - ublock-origin:
-          installation_mode: force_installed
-          runtime_blocked_hosts:
-            - '*://*.supersensitive.bank'
-        # If you don't want an extension to be loaded from the Chrome Web Store
-        # (or it's unlisted there), but rather from a local directory specified in
-        # `extensions:defaults:local_source`, set local to true and make sure to
-        # provide e.g. `metamask.crx` in there.
-        # Since we simulate a local repo, you will need to tell Salt explicitly
-        # which version you're providing and need to change the value when you want to
-        # make Chromium aware the extension was updated on the next startup.
-      - metamask:
-          blocked_permissions:
-            - geolocation
-          local: true
-          local_version: 10.8.1
-          toolbar_pin: force_pinned
+    extensions:
+        # List of extensions that should not be installed.
+      absent:
+        - tampermonkey
+        # (Semi-)automatically install Chromium Web Store extension
+        # for Ungoogled (needs user interaction on Mac/Win).
+      chromium_web_store: true
+        # Defaults for extension installation settings
+      defaults:
+        installation_mode: normal_installed
+        override_update_url: false
+        update_url: https://clients2.google.com/service/update2/crx
+        # add generated ExtensionSettings to forced policies
+        # (necessary on MacOS at least)
+      forced: false
+        # This formula allows using (Ungoogled: needs to use) extensions from the
+        # local file system. Those extensions will not be updated automatically
+        # from the web.
+      local:
+          # When marking extensions as local, use this path on the minion to look for
+          # `<extension>.crx` by default.
+        source: /opt/chromium_extensions
+          # When using local source, sync extensions automatically from the fileserver.
+          # You will need to provide the extensions as
+          # `tool_chromium/extensions/<tofs_grain>/<extension>.crx`
+        sync: true
+        # List of extensions that are to be installed. When using policies, can also
+        # be specified there manually, but this provides convenience. See
+        # `tool_chromium/parameters/defaults.yaml` for a list of available extensions under
+        # `lookup:extension_data`. Of course, you can also specify your own on top.
+      wanted:
+        - bitwarden
+          # If you want to override defaults, you can specify them
+          # in a mapping like this:
+        - ublock-origin:
+            installation_mode: force_installed
+            runtime_blocked_hosts:
+              - '*://*.supersensitive.bank'
+          # If you don't want an extension to be loaded from the Chrome Web Store
+          # (or it's unlisted there), but rather from a local directory specified in
+          # `extensions:defaults:local_source`, set local to true and make sure to
+          # provide e.g. `metamask.crx` in there.
+          # Since we simulate a local repo, you will need to tell Salt explicitly
+          # which version you're providing and need to change the value when you want to
+          # make Chromium aware the extension was updated on the next startup.
+        - metamask:
+            blocked_permissions:
+              - geolocation
+            local: true
+            local_version: 10.8.1
+            toolbar_pin: force_pinned
 
-    # This is where you specify enterprise policies.
-    # See https://chromeenterprise.google/policies/ for available settings.
-  policies:
-      # These policies are installed as forced, i.e. cannot be changed
-      # by the user. On MacOS at least, this is where ExtensionSettings
-      # has to be specified to take effect.
-    forced:
-      SSLErrorOverrideAllowed: false
-      SSLVersionMin: tls1.2
-      # These policies are installed as recommended, i.e. only provide
-      # default values.
-    recommended:
-      AutofillCreditCardEnabled: false
-      BlockThirdPartyCookies: true
-      BookmarkBarEnabled: true
-      BrowserNetworkTimeQueriesEnabled: false
-      BrowserSignin: 0
-      BuiltInDnsClientEnabled: false
-      MetricsReportingEnabled: false
-      PromotionalTabsEnabled: false
-      SafeBrowsingExtendedReportingEnabled: false
-      SearchSuggestEnabled: false
-      ShowFullUrlsInAddressBar: true
-      SyncDisabled: true
-      UrlKeyedAnonymizedDataCollectionEnabled: false
-      UserFeedbackAllowed: false
+      # This is where you specify enterprise policies.
+      # See https://chromeenterprise.google/policies/ for available settings.
+    policies:
+        # These policies are installed as forced, i.e. cannot be changed
+        # by the user. On MacOS at least, this is where ExtensionSettings
+        # has to be specified to take effect.
+      forced:
+        SSLErrorOverrideAllowed: false
+        SSLVersionMin: tls1.2
+        # These policies are installed as recommended, i.e. only provide
+        # default values.
+      recommended:
+        AutofillCreditCardEnabled: false
+        BlockThirdPartyCookies: true
+        BookmarkBarEnabled: true
+        BrowserNetworkTimeQueriesEnabled: false
+        BrowserSignin: 0
+        BuiltInDnsClientEnabled: false
+        MetricsReportingEnabled: false
+        PromotionalTabsEnabled: false
+        SafeBrowsingExtendedReportingEnabled: false
+        SearchSuggestEnabled: false
+        ShowFullUrlsInAddressBar: true
+        SyncDisabled: true
+        UrlKeyedAnonymizedDataCollectionEnabled: false
+        UserFeedbackAllowed: false
 
       # Default formula configuration for all users.
     defaults:
