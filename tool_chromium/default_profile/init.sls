@@ -18,6 +18,7 @@ Chromium has been run once for user '{{ user.name }}':
     - runas: {{ user.name }}
     - bg: true
     - timeout: 20
+    - hide_output: true
     - require:
       - sls: {{ sls_package_install }}
     - creates:
