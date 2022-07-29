@@ -11,18 +11,31 @@ include:
 
 {%- for user in chromium.users %}
 
-Chromium has generated the default profile for user '{{ user.name }}':
+Chromium has been run once for user '{{ user.name }}':
   cmd.run:
     - name: |
-        "{{ chromium._bin }}" &
-        while [ ! -d '{{ user._chromium.confdir | path_join('Default') }}' ]; do
-          sleep 1;
-        done
-        sleep 1
-        killall "$(basename '{{ chromium._bin }}')"
+        "{{ chromium._bin }}"
     - runas: {{ user.name }}
+    - bg: true
+    - timeout: 20
     - require:
       - sls: {{ sls_package_install }}
-    - unless:
-      - test -d '{{ user._chromium.confdir | path_join('Default') }}'
+    - creates:
+      - {{ user._chromium.confdir | path_join("Default") }}
+
+Chromium has generated the default profile for user '{{ user.name }}':
+  file.exists:
+    - name: {{ user._chromium.confdir | path_join("Default") }}
+    - retry:
+        attempts: 10
+        interval: 1
+    - require:
+      - Chromium has been run once for user '{{ user.name }}'
+
+Chromium is not running for user '{{ user.name }}':
+  process.absent:
+    - name: {{ salt["file.basename"](chromium._bin) }}
+    - user: {{ user.name }}
+    - onchanges:
+      - Chromium has been run once for user '{{ user.name }}'
 {%- endfor %}
