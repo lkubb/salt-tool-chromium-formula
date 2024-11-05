@@ -1,3 +1,5 @@
+# vim: ft=sls
+
 {#-
     Installs extensions. This state does the following:
 
@@ -16,9 +18,9 @@
     ``force_installed`` via policies because subsequent installation
     requests are denied for those. If this goes wrong, the user would
     need to uninstall the policies and run this state again.
--#}
+#}
 
-{%- set tplroot = tpldir.split('/')[0] %}
+{%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
 
 include:
@@ -31,17 +33,15 @@ include:
 Extension stuff is finished:
   test.nop:
     - name: Technical reasons (cannot require sls file with only includes)
-{%- if  (chromium.get('_local_extensions') and chromium.extensions.local.sync)
-    or  ((chromium.get('_local_extensions') or chromium.get('_download_extensions'))
-          and grains.kernel != 'Linux') %}
+{%- if  (chromium.get("_local_extensions") and chromium.extensions.local.sync)
+    or  ((chromium.get("_local_extensions") or chromium.get("_download_extensions"))
+          and grains.kernel != "Linux") %}
     - require:
-{%-   if chromium.get('_local_extensions') and chromium.extensions.local.sync %}
+{%-   if chromium.get("_local_extensions") and chromium.extensions.local.sync %}
       - sls: {{ slsdotpath }}.local
 {%-   endif %}
-{%-   if (chromium.get('_download_extensions') or chromium.get('_local_extensions'))
-      and grains.kernel != 'Linux' %}
+{%-   if (chromium.get("_download_extensions") or chromium.get("_local_extensions"))
+      and grains.kernel != "Linux" %}
       - sls: {{ slsdotpath }}.manual.install
 {%-   endif %}
 {%- endif %}
-
-# vim: ft=sls

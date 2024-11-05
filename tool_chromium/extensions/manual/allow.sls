@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
-{%- set sls_winadm_install = tplroot ~ '.policies.winadm' %}
+{%- set tplroot = tpldir.split("/")[0] %}
+{%- set sls_winadm_install = tplroot ~ ".policies.winadm" %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
 
 
-{%- if chromium | traverse('_policies:forced:ExtensionInstallSources') %}
-{%-   if 'Windows' == grains.kernel %}
+{%- if chromium | traverse("_policies:forced:ExtensionInstallSources") %}
+{%-   if grains.kernel == "Windows" %}
 
 include:
   - {{ sls_winadm_install }}
 
 Local Extension source is allowed to install:
   lgpo.set:
-    - computer_policy: {{ {'ExtensionInstallSources': chromium._policies.forced.ExtensionInstallSources} | json }}
+    - computer_policy: {{ {"ExtensionInstallSources": chromium._policies.forced.ExtensionInstallSources} | json }}
     - adml_language: {{ chromium.lookup.win_gpo.lang }}
     - require:
       - sls: {{ sls_winadm_install }}
@@ -25,12 +24,12 @@ Group policies are updated to allow local installation: # suffix to make ID dist
     - onchanges:
       - Local Extension source is allowed to install
 
-{%-   elif 'Darwin' == grains.kernel %}
-{%-     set necessary = 'yes' if
+{%-   elif grains.kernel == "Darwin" %}
+{%-     set necessary = "yes" if
                 chromium._policies.forced.ExtensionInstallSources !=
-                salt['macprofile.item_keys']('salt.tool.org.chromium.Chromium') |
-                traverse('ProfileItems:PayloadContent:ExtensionInstallSources')
-              else ''
+                salt["macprofile.item_keys"]("salt.tool.org.chromium.Chromium") |
+                traverse("ProfileItems:PayloadContent:ExtensionInstallSources")
+              else ""
 %}
 
 Local Extension source is allowed to install:
@@ -41,7 +40,7 @@ Local Extension source is allowed to install:
     - removaldisallowed: false
     - ptype: org.chromium.Chromium
     - content:
-      - {{ {'ExtensionInstallSources': chromium._policies.forced.ExtensionInstallSources} | json }}
+      - {{ {"ExtensionInstallSources": chromium._policies.forced.ExtensionInstallSources} | json }}
     # hackityhack for requisites
     - onlyif:
       - test -n '{{ necessary }}'

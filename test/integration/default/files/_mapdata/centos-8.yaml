@@ -73,6 +73,8 @@ values:
     paths:
       confdir: '.config/chromium'
       conffile: 'config'
+      xdg_dirname: 'chromium'
+      xdg_conffile: 'config'
     rootgroup: root
   map_jinja:
     sources:

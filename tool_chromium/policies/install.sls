@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
+{%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
 
 
 include:
   - {{ tplroot }}.extensions
-{%- if 'Windows' == grains.kernel %}
+{%- if "Windows" == grains.kernel %}
   - {{ slsdotpath }}.winadm
 {%- endif %}
 
 
-{%- if chromium.get('_policies') %}
-{%-   if 'Windows' == grains.kernel %}
-{%-     if chromium._policies.get('forced') %}
+{%- if chromium.get("_policies") %}
+{%-   if "Windows" == grains.kernel %}
+{%-     if chromium._policies.get("forced") %}
 
 Chromium forced policies are applied as Group Policy:
   lgpo.set:
@@ -27,7 +26,7 @@ Chromium forced policies are applied as Group Policy:
       - sls: {{ tplroot }}.extensions
 {%-     endif %}
 
-{%-     if chromium._policies.get('recommended') %}
+{%-     if chromium._policies.get("recommended") %}
 
 Chromium recommended policies are applied as Group Policy:
   lgpo.set:
@@ -46,8 +45,8 @@ Group policies are updated (Chromium):
     - name: gpupdate /wait:0
     - watch: []
 
-{%-   elif 'Darwin' == grains.kernel %}
-{%-     if chromium._policies.get('forced') %}
+{%-   elif "Darwin" == grains.kernel %}
+{%-     if chromium._policies.get("forced") %}
 
 Chromium forced policies are applied as profile:
   macprofile.installed:
@@ -63,7 +62,7 @@ Chromium forced policies are applied as profile:
       - sls: {{ tplroot }}.extensions
 {%-     endif %}
 
-{%-     if chromium._policies.get('recommended') %}
+{%-     if chromium._policies.get("recommended") %}
 
 Chromium recommended policies are applied as plist:
   file.serialize:
@@ -85,7 +84,7 @@ MacOS plist cache is updated (Chromium):
 {%-     endif %}
 
 {%-   else %}
-{%-     if chromium._policies.get('forced') %}
+{%-     if chromium._policies.get("forced") %}
 
 Chromium enforced policies are synced to json file:
   file.serialize:
@@ -100,7 +99,7 @@ Chromium enforced policies are synced to json file:
       - sls: {{ tplroot }}.extensions
 {%-     endif %}
 
-{%-     if chromium._policies.get('recommended') %}
+{%-     if chromium._policies.get("recommended") %}
 
 Chromium recommended policies are synced to json file:
   file.serialize:

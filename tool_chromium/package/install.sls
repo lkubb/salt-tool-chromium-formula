@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
+{%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
-{%- set mode = 'latest' if chromium.get('update_auto') and 'Darwin' != grains.kernel else 'installed' %}
+{%- set mode = "latest" if chromium.get("update_auto") and grains.kernel != "Darwin" else "installed" %}
 
 include:
   - {{ slsdotpath }}.repo
 
 
-{%- if 'Windows' == grains.kernel %}
+{%- if grains.kernel == "Windows" %}
 
 Chromium is installed:
   chocolatey.{{ mode }}:
@@ -21,7 +20,7 @@ Chromium is installed:
     - name: {{ chromium._pkg }}
 {%- endif %}
 
-{%- if 'Darwin' == grains.os %}
+{%- if grains.kernel == "Darwin" %}
 
 Chromium can be launched:
   cmd.run:

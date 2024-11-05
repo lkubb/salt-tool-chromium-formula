@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
+{%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as chromium with context %}
 
-{%- if 'Windows' == grains.kernel %}
+{%- if grains.kernel == "Windows" %}
 
 include:
   - {{ slsdotpath }}.winadm.clean
 {%- endif %}
 
-{%- if 'Windows' == grains.kernel %}
+{%- if grains.kernel == "Windows" %}
 
 Chromium forced policies are removed from Group Policy:
   lgpo.set:
@@ -35,7 +34,7 @@ Group policies are updated (Chromium):
       - Chromium forced policies are removed from Group Policy
       - Chromium recommended policies are removed from Group Policy
 
-{%- elif 'Darwin' == grains.kernel %}
+{%- elif grains.kernel == "Darwin" %}
 
 Chromium forced policy profile cannot be silently removed:
   test.show_notification:
