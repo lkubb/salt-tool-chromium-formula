@@ -1,5 +1,5 @@
-Welcome to salt-tool-chromium-formula's documentation!
-======================================================
+Welcome to tool-chromium-formula's documentation!
+=================================================
 
 .. toctree::
    :maxdepth: 2

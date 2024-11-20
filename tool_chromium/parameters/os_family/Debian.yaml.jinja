@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # vim: ft=yaml
 #
 # Set values specific to:
@@ -10,7 +9,7 @@
 # If you do not need to provide defaults via the `os_family` config,
 # you can remove this file or provide at least an empty dict, e.g.
 # values: {}
-{%- set os_code = grains['os'] | capitalize ~ '_' ~ grains['lsb_distrib_codename'] | capitalize %}
+{%- set os_code = grains.os | capitalize ~ '_' ~ grains.lsb_distrib_codename | capitalize %}
 ---
 values:
   lookup:
